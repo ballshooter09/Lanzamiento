@@ -1,6 +1,6 @@
 float PID_Controller(float INPUT, float SET, float dt, float last_error, float Integral) {
 
-	float OUTPUT, error;
+	float OUTPUT, error, Derivative;
 
 	error = SET - INPUT;
 	Integral = Integral + error;
@@ -13,8 +13,8 @@ float PID_Controller(float INPUT, float SET, float dt, float last_error, float I
 	else if (OUTPUT < 0)
 		OUTPUT = 0;
 
-	return OUTPUT
+	return OUTPUT;
 }
 
 
-float kp, ki, kd, last_error, Integral;
+float Kp, Ki, Kd, last_error, Integral;
