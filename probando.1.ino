@@ -5,28 +5,32 @@
 
 //float Kp, Ki, Kd, last_error, Integral;
 
-float Kp = 2;
-float Ki = 0.01;
-float Kd = 0.01;
+int set = 1500;
+
+float promedio1;
+float promedio2;
+
+float Kp = 0.9;
+float Ki = 0.06;
+float Kd = 0.1;
 float last_error = 0;
 float Integral = 0;
 
-float Kp1 = 1;
-float Ki1 = 0.01;
-float Kd1 = 0.01;
-float last_error1 = 2500;
+float Kp1 = 0.9;
+float Ki1 = 0.06;
+float Kd1 = 0.1;
+float last_error1 = 0;
 float Integral1 = 0;
 
 float PID_Controller(float IN, float SET, float dt, float last_error, float Integral);
 float PID_Controller1(float IN, float SET, float dt, float last_error, float Integral);
 
-const int MOTOR = 11;
+const int MOTOR1 = 11;
 const int MOTOR2 = 10;
 
- int set = 2500;
- int vel = 0;
- int vel2 = 0;
- int pwm = 0;
+ 
+
+ int pwm1 = 0;
  int pwm2 = 0;
  
  int die11 = 0;
@@ -48,7 +52,7 @@ const int MOTOR2 = 10;
 
 
 void setup() {
- pinMode(MOTOR,OUTPUT);
+ pinMode(MOTOR1,OUTPUT);
  pinMode(MOTOR2,OUTPUT);  
  pinMode(6,OUTPUT);
  pinMode(5,OUTPUT);
@@ -102,7 +106,7 @@ void setup() {
 //////////////////////////////////////////
  
  
- 
+
 }
 
 //long t1,t2;
@@ -121,7 +125,11 @@ void loop() {
     
   }
   
+  
+  promedio1 = (vel11 + vel12)/2;
+  promedio2 = (vel21 + vel22)/2;
 
+/*
 Serial.print(vel11);
 Serial.print('\t');
 Serial.print('\t');
@@ -129,22 +137,38 @@ Serial.print(vel12);
 
 Serial.print('\t');
 Serial.print('\t');
+*/
+
+Serial.print(promedio1);
+
+Serial.print('\t');
+Serial.print('\t');
 Serial.print(set);
 
 Serial.print('\t');
 Serial.print('\t');
-Serial.println(pwm);
+Serial.print(pwm1);
+
+Serial.print('\t');
+Serial.print('\t');
+Serial.print(Integral);
+Serial.print('\t');
+Serial.print('\t');
+Serial.println(last_error);
+
+/*
 if (vel11 > 30){
   digitalWrite(13, HIGH);
 }
 else if (vel11 < 30){
   digitalWrite(13,LOW);
 }
+*/
 
-pwm = PID_Controller(vel11, set, 0.5, last_error, Integral);
-analogWrite(MOTOR,pwm);
+pwm1 = PID_Controller(promedio1, set, 0.5);
+analogWrite(MOTOR1,pwm1);
 
-pwm2 = PID_Controller1(vel22, set, 0.5, last_error1, Integral1);
+pwm2 = PID_Controller1(promedio2, set, 0.5);
 analogWrite(MOTOR2,pwm2);
 
 }
@@ -213,17 +237,18 @@ ISR (PCINT1_vect)
 
 }
 
-float PID_Controller(float IN, float SET, float dt, float last_error, float Integral) {
+float PID_Controller(float IN, float SET, float dt) {
 
 	float OUT;
         float error;
         float Derivative;
 
-	error = SET - IN;
-	Integral = Integral + error;
-	Derivative = error - last_error;
 
-	OUT = ( SET + Kp*error + Ki*Integral*dt + Kd*Derivative/dt)*255/12000;  //*255/(SET*Kp)
+	error = SET - IN;
+	Integral = Integral + error*dt;
+	Derivative = (error - last_error)/dt;
+        last_error = error; 
+	OUT =  (Kp*error + Ki*(Integral) + Kd*Derivative)*255/6000;  
 
 	if (OUT > 255)
 		OUT = 255;
@@ -237,7 +262,7 @@ float PID_Controller(float IN, float SET, float dt, float last_error, float Inte
 
 
 
-float PID_Controller1(float IN, float SET, float dt, float last_error, float Integral) {
+float PID_Controller1(float IN, float SET, float dt) {
 
 	float OUT;
         float error;
@@ -246,8 +271,9 @@ float PID_Controller1(float IN, float SET, float dt, float last_error, float Int
 	error = SET - IN;
 	Integral1 = Integral1 + error;
 	Derivative = error - last_error1;
+        last_error1 = error;
 
-	OUT = (SET + Kp1*error + Ki1*Integral*dt + Kd1*Derivative/dt)*255/12000;  //*255/(SET*Kp)
+	OUT = (Kp1*error + Ki1*Integral*dt + Kd1*Derivative/dt)*255/6000;  
 
 	if (OUT > 255)
 		OUT = 255;
